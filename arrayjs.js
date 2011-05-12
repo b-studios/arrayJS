@@ -1,5 +1,5 @@
 /*!
- * arrayJS JavaScript Library v0.2
+ * arrayJS JavaScript Library v0.2.1
  * http://b-studios.de
  *
  * Copyright 2010, Jonathan Brachthäuser
@@ -8,8 +8,14 @@
  *
  * Date: Sat Nov 27 18:03:45 2010 +0100
  *
+ * Changes from v0.2
+ * - Fixed filter method. filter$ did not work properly because of splicing
+ * - added copy()
+ * - fixed uniq(), ie had problems because of indexOf
+ * - optimized uniq$, got chrome from 1.5s down to 11ms and IE from 15s to 362ms 
+ * - fixed some IE-Issues with fastUniq
  */ 
- /**
+/**
  * Factorymethod for collections.
  *		
  * @param 	{Array, String}	elements 	The elements which are used, to form the collection
@@ -42,10 +48,8 @@ var arrayjs = function(elements) {
 		 * -splice
 		 * -sort
 		 * -filter (reimplemented this one for consistency)
-		 */			
-			
-	
-	  /** 
+		 */
+		/** 
 		 * provide indexOf Method if it does not exist. (Internet Explorer)
 		 */
 		if( !Array.prototype.indexOf ) {			
@@ -70,16 +74,16 @@ var arrayjs = function(elements) {
 			return this;			
 		};
 		
-	 /**
-		* Modifies each element in existing array using the specified block
-		* <pre>
-		*	  _([1,5,6,7]).collect(function(i,el) {
-		*     return this*2;
-		*	  });
-		*
-		*   -> _(2,10,12,14)
-		* </pre>
-		*/	
+	  /**
+	 	 * Modifies each element in existing array using the specified block
+		 * <pre>
+		 *	  _([1,5,6,7]).collect(function(i,el) {
+		 *     return this*2;
+		 *	  });
+		 *
+		 *   -> _(2,10,12,14)
+		 * </pre>
+		 */	
 		this.collect$ = function(block) {
 			
 			var that = this;
@@ -90,26 +94,27 @@ var arrayjs = function(elements) {
 		this.collect = applyToCopy(this, this.collect$);
 		
 
-	 /** 
-		*	Facade for this.collect and this.collect$
-		*/
+	  /** 
+		 *	Facade for this.collect and this.collect$
+		 */
 		this.map$ = this.collect$;
 		this.map = this.collect;		
 		
-	 /**
-		* Own implementation of [].filter(), because of consistency in use:
-		* <pre>
-		*	 $([1,5,6,7]).filter(function(i,el) {
-		*    return this > 5;
-		*	 });
-		* </pre>
-		*/			
+	  /**
+	 	 * Own implementation of [].filter(), because of consistency in use:
+	 	 * <pre>
+	 	 *	 $([1,5,6,7]).filter(function(i,el) {
+	 	 *    return this > 5;
+	 	 *	 });
+	 	 * </pre>
+	 	 * FIXED: splice reduced the length, but each won't take notice of it.
+	 	 */			
 		this.filter$ = function(block) {
-			var that = this;
-			return this.each( function(i, el) {
-				if( !block.call(el,i,el) )
-					that.splice(i,1);
-			});
+			for(var i = 0; i < this.length; i++) {			
+				if( !block.call(this[i],i,this[i]) )
+					this.splice(i--,1);
+			};
+			return this
 		}
 		this.filter = function(block) {		
 			var elements = [];			
@@ -121,8 +126,7 @@ var arrayjs = function(elements) {
 			
 			return new Collection(elements);				
 		}
-	
-		
+
 		/**
 		 * Invert-filter
 		 */
@@ -149,10 +153,9 @@ var arrayjs = function(elements) {
 		}
 		this.replace = applyToCopy(this, this.replace$);
 		
-		
-	 /**
-		* Removes all empty nodes (null or undefined) from Array
-		*/
+	  /**
+	 	 * Removes all empty nodes (null or undefined) from Array
+		 */
 		this.compact$ = function() {
 			return this.filter$(function(i, el) {
 				return !(el == undefined || el == null);
@@ -164,9 +167,11 @@ var arrayjs = function(elements) {
 			});
 		}				
 
-	 /**
-		* Removes matching elements from Array
-		*/
+	  /**
+		 * Removes matching elements from Array
+		 * Idea: use multiple arguments to specify, which items to be removed
+		 * or: use second argument for comparison function
+		 */
 		this.remove$ = function(element) {
 			return this.filter$(function(i,el) {
 				return el != element;
@@ -195,27 +200,26 @@ var arrayjs = function(elements) {
 		 * This algorithm has O(n²)
 		 */
 		this.uniq$ = function() {
-			iterate:for(var i = 1; i < this.length; i++) {
-				
-				// now iterate over all previous elements and search for duplicates
-				for(var j = 0; j < i; j++) {
-					if(this[j] == this[i]) {
-						this.splice(i--,1)
-						continue iterate;
-					}
-				}				
-			}
-			return this;
-		}
-		this.uniq = function() {
-			var elements = [];
+			var elements = arrayjs();
 			
 			for(var i = 0; i < this.length; i++) {				
 				if(elements.indexOf(this[i]) == -1)
 					elements.push(this[i]);
 			}
 			
-			return new Collection(elements);
+			this.clear();
+			Array.prototype.push.apply(this, elements.toArray());
+			return this;
+		}
+		this.uniq = function() {
+			var elements = arrayjs();
+			
+			for(var i = 0; i < this.length; i++) {				
+				if(elements.indexOf(this[i]) == -1)
+					elements.push(this[i]);
+			}
+			
+			return elements;
 		}
 		
 		/**
@@ -226,7 +230,13 @@ var arrayjs = function(elements) {
 		 */
 		this.fastUniq$ = function(comparison) {
 			var that = this;
-			this.sort(comparison);
+			// IE won't work with undefined comparison as argument, so we need
+			// this if-clause. Further it does not work with this.sort - so we
+			// use Array.prototype.sort
+			if(comparison)
+				Array.prototype.sort.call(this, comparison);
+			else 
+				Array.prototype.sort.call(this);
 			
 			for(var i = 0; i < this.length; i++) {
 				if(i > 0 && that[i-1] == that[i])
@@ -266,10 +276,10 @@ var arrayjs = function(elements) {
 		this.cat$ = this.concat$;
 		this.cat = this.concat;
 		
-	 /** 
-		* Reverse could be inherited from Array.prototype, but then the reversal would be saved
-		* to original Collection and not a new one would be returned
-		*/
+	  /** 
+		 * Reverse could be inherited from Array.prototype, but then the reversal would be saved
+		 * to original Collection and not a new one would be returned
+		 */
 		this.reverse$ = function() { 
 			Array.prototype.reverse.apply(this);
 			return this;
@@ -310,8 +320,9 @@ var arrayjs = function(elements) {
 		 * maybe a little confusing?! What do you think?
 		 */
 		this.clear = function() {
-			Array.prototype.splice.call(this, -(this.length+1));
-			return this;
+		// have to check this in IE!!!
+		Array.prototype.splice.call(this, 0, this.length);
+		return this;
 		}
 		this.empty = this.clear;
 	
@@ -334,9 +345,9 @@ var arrayjs = function(elements) {
 			return index == -1? null :index;			
 		}
 		
-	 /**
-		* Counts the occurances of element in Array
-		*/
+	  /**
+		 * Counts the occurances of element in Array
+		 */
 		this.count = function(element) {
 			return this.filter(function(i,el) {
 				return element == el;
@@ -345,6 +356,9 @@ var arrayjs = function(elements) {
 		
 		/**
 		 * Probably fastest way to convert to real Array.
+		 * Should multidimentsional arrays be converted to multidimensional
+		 * collections in the first place and then reconverted to multidimensional
+		 * native arrays with this methods???
 		 */
 		this.toArray = function() {					
 			return Array.prototype.slice.call(this);
@@ -368,11 +382,11 @@ var arrayjs = function(elements) {
 		 * Returns last element of this collection
 		 */		
 		this.last = function() {
-			return this[this.length];
+			return this[this.length-1];
 		}
 		
 		/**
-		 * Returns values, which are specified at indices. Mutliple arguments are allowed.
+		 * Returns values, which are specified at indices. Mutliple arguments are allowed. The values are returned in a new collection.
 		 *
 		 * for example: _(1,5,7,8,9).valuesAt(0,2,3);
 		 * -> [1,7,8]
@@ -394,6 +408,14 @@ var arrayjs = function(elements) {
 		 * Returns the size of this collection. Facade for this.length
 		 */
 		this.size = function() { return this.length; }		
+		
+		/**
+		 * Can be used to get copy of this collection and work modifying on that,
+		 * whithout influencing original collection.
+		 */
+		 this.copy = function() {
+			return arrayjs(this);
+		 }
 		
 		/**
 		 * @returns "_[element0, element1, element 2 etc.]"
