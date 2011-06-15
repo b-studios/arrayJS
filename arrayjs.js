@@ -1,5 +1,6 @@
 /*!
  * arrayJS JavaScript Library v0.2.1
+ * 
  * http://b-studios.de
  *
  * Copyright 2010, Jonathan Brachthäuser
@@ -16,13 +17,30 @@
  * - fixed some IE-Issues with fastUniq
  */ 
 /**
- * Factorymethod for collections.
- *		
- * @param 	{Array, String}	elements 	The elements which are used, to form the collection
- * @param 									variadic	If there are multiple arguments, every argument is 
- *																		considered to be an element of an array.
+ * @function arrayjs
  *
- * @returns Collection
+ * Factorymethod for collections.
+ * 
+ * @overload 
+ *   @param [Array] elements The elements which are used, to form the collection
+ *   @return [arrayjs.Collection]
+ *
+ * @overload
+ *   Sometimes it is easier to separate items of an array with whitespaces in a 
+ *   string, so this is also possible: `_("foo bar yeah this works!");`
+ *      
+ *   @param [String] elements Each whitespace seperated section of the string will
+ *     be interpreted as an element of an array.
+ *   @return [arrayjs.Collection]
+ 
+ * @overload
+ *   Variadic function with multiple arguments. Every argument is	considered to 
+ *   be an element of the array.
+ *   @param [Object] el1
+ *   @param [Object] el2
+ *   @param [...] ...
+ *   @return [arrayjs.Collection]
+ *
  */
 var arrayjs = function(elements) {
 
@@ -33,22 +51,58 @@ var arrayjs = function(elements) {
 			return copy;
 		}			
 	}
-
+  
+  /**
+   * @object arrayjs.Collection
+   *
+   * For information on how to retreive a Collection-Object from your list of
+   * elements see {arrayjs the factory method}.
+   *
+   * All default Array-Operations can be used also on a arrayJS-Collection.
+   * Implemented in Array by default:		 
+	 * 
+	 * - push
+	 * - pop
+	 * - shift
+	 * - unshift		 
+	 * - slice
+	 * - splice
+	 * - sort
+	 * - filter (reimplemented this one for consistency)
+   * 
+   * Most of the operations found below can be chained, like:
+   *
+   *     var myArray = _([10, 2, 4, 8]);  
+   *    
+   *     myArray.filter(function() { return this > 3; })  
+   *            .collect(function() { return this*2;})  
+   *            .each(function(i) { console.log(this, i); });  
+   *
+   *     > 20 0
+   *     > 8 1
+   *     > 16 2
+   *     > [20, 8, 16]
+   * 
+   * 
+   * Iterating
+   * ---------
+   * - {.each}
+   *
+   * Filtering
+   * ---------
+   * - {.compact}
+   * - {.filter}
+   * - {.reject}
+   * - {.uniq}
+   * - {.fastUniq}
+   * 
+   * 
+   * The arrayJS Collection-Object
+   */
 	var Collection = function(elements) {				
 		
 		this.isCollection = true;	
 			
-		/**
-		 * Implemented in Array by default:		 
-		 * -push
-		 * -pop
-		 * -shift
-		 * -unshift		 
-		 * -slice
-		 * -splice
-		 * -sort
-		 * -filter (reimplemented this one for consistency)
-		 */
 		/** 
 		 * provide indexOf Method if it does not exist. (Internet Explorer)
 		 */
@@ -58,12 +112,14 @@ var arrayjs = function(elements) {
 					if(this[i] == element) {
 						return i;
 					}				
-				}		
+				}	
 				return -1;				
 			}
 		}
 	
 		/**
+		 * @method .each
+		 *
 		 * Iterates over all elements of this collection. Block gets element as this-context and
 		 * can receive two arguments (i, el)
 		 */
@@ -75,14 +131,15 @@ var arrayjs = function(elements) {
 		};
 		
 	  /**
-	 	 * Modifies each element in existing array using the specified block
-		 * <pre>
-		 *	  _([1,5,6,7]).collect(function(i,el) {
-		 *     return this*2;
-		 *	  });
+	   * @method .collect
 		 *
-		 *   -> _(2,10,12,14)
-		 * </pre>
+	 	 * Modifies each element in existing array using the specified block
+		 * 
+		 *     _([1,5,6,7]).collect(function(i,el) {
+		 *       return this*2;
+		 *     });
+		 *     
+		 *     -> _(2,10,12,14)
 		 */	
 		this.collect$ = function(block) {
 			
@@ -95,19 +152,23 @@ var arrayjs = function(elements) {
 		
 
 	  /** 
-		 *	Facade for this.collect and this.collect$
+	   * @method .map
+		 * Facade for {.collect}
 		 */
 		this.map$ = this.collect$;
 		this.map = this.collect;		
 		
 	  /**
-	 	 * Own implementation of [].filter(), because of consistency in use:
-	 	 * <pre>
-	 	 *	 $([1,5,6,7]).filter(function(i,el) {
-	 	 *    return this > 5;
-	 	 *	 });
-	 	 * </pre>
-	 	 * FIXED: splice reduced the length, but each won't take notice of it.
+	   * @method .filter
+	   *
+	 	 * Own implementation of [].filter(), because of consistency in use
+	 	 *
+	 	 * @example Usage
+	 	 *   $([1,5,6,7]).filter(function(i,el) {
+	 	 *     return this > 5;
+	 	 *   });
+	 	 * 
+	 	 * @note FIXED: splice reduced the length, but each won't take notice of it.
 	 	 */			
 		this.filter$ = function(block) {
 			for(var i = 0; i < this.length; i++) {			
@@ -128,7 +189,9 @@ var arrayjs = function(elements) {
 		}
 
 		/**
-		 * Invert-filter
+		 * @method .reject
+		 *
+		 * Inverted-{.filter filter}
 		 */
 		this.reject$ = function(block) {
 			return this.filter$(function(i, el) {
@@ -142,6 +205,8 @@ var arrayjs = function(elements) {
 		}		
 		
 		/**
+		 * @method .replace
+		 *
 		 * Replaces all occurances of toReplace with otherItem
 		 */
 		this.replace$ = function(toReplace, otherItem) {
@@ -154,6 +219,8 @@ var arrayjs = function(elements) {
 		this.replace = applyToCopy(this, this.replace$);
 		
 	  /**
+	   * @method .compact
+	   *
 	 	 * Removes all empty nodes (null or undefined) from Array
 		 */
 		this.compact$ = function() {
@@ -168,9 +235,11 @@ var arrayjs = function(elements) {
 		}				
 
 	  /**
+	   * @method .remove 
+	   * 
 		 * Removes matching elements from Array
-		 * Idea: use multiple arguments to specify, which items to be removed
-		 * or: use second argument for comparison function
+		 * @note Idea: use multiple arguments to specify, which items to be removed
+		 *   or: use second argument for comparison function
 		 */
 		this.remove$ = function(element) {
 			return this.filter$(function(i,el) {
@@ -184,6 +253,8 @@ var arrayjs = function(elements) {
 		}
 		
 		/**
+		 * @method .deleteAt 
+		 *
 		 * Deletes the element at the specified index
 		 */
 		this.deleteAt$ = function(index) {
@@ -191,13 +262,20 @@ var arrayjs = function(elements) {
 			return this;
 		}
 		this.deleteAt = applyToCopy(this, this.deleteAt$);		
+		
+		/**
+		 * @method .removeAt
+		 * Same as {.deleteAt}
+		 */
 		this.removeAt$ = this.deleteAt$;
 		this.removeAt = this.deleteAt;
 		
 		/**
-		 * Removes all duplicate entries from array. Currently not very performant. Use fastUniq
-		 * instead, if you are experience problems.
-		 * This algorithm has O(n²)
+		 * @method .uniq
+		 *
+		 * Removes all duplicate entries from array. Currently not very performant. 
+		 * Use {.fastUniq} instead, if you are experience problems.
+		 * This algorithm has `O(n²)`
 		 */
 		this.uniq$ = function() {
 			var elements = arrayjs();
@@ -223,10 +301,13 @@ var arrayjs = function(elements) {
 		}
 		
 		/**
-		 * returns sorted and unique array
-		 * O(n*log(n) + n)
+		 * @method .fastUniq
 		 *
-		 * The comparison-block is optional, but needed for complex objects or arrays to work
+		 * Faster version of {.uniq} with complexity `O(n*log(n) + n)`.
+		 *
+		 * @param [Function] comparison? The comparison-block is optional, but maybe 
+		 *   needed for complex objects or arrays to work
+		 * @return [arrayjs.Collection] sorted and unique array
 		 */
 		this.fastUniq$ = function(comparison) {
 			var that = this;
@@ -247,8 +328,12 @@ var arrayjs = function(elements) {
 		this.fastUniq = applyToCopy(this, this.fastUniq$);
 		
 		/**
-		 * Accepts variable argumentlength. First Argument specifies index to insert at. All following
-		 * elements are inserted at this place.
+		 * @method .insert
+		 *
+		 * Accepts variable argumentlength.
+		 *
+		 * @param [Number] index index to insert at. All following
+		 *   elements are inserted at this place.
 		 */		
 		this.insert$ = function(index) {
 		
@@ -262,7 +347,10 @@ var arrayjs = function(elements) {
 		this.insert = applyToCopy(this, this.insert$);		
 		
 		/**
+		 * @method .concat 
+		 *
 		 * Attaches the elements of other to the end of this collection
+		 * @param [arrayjs.Collection] other
 		 */
 		this.concat$ = function(other) { 
 			Array.prototype.push.apply(this, this.toArray.call(other));
@@ -277,6 +365,8 @@ var arrayjs = function(elements) {
 		this.cat = this.concat;
 		
 	  /** 
+	   * @method .reverse
+	   *
 		 * Reverse could be inherited from Array.prototype, but then the reversal would be saved
 		 * to original Collection and not a new one would be returned
 		 */
@@ -287,8 +377,12 @@ var arrayjs = function(elements) {
 		this.reverse = applyToCopy(this, this.reverse$);
 			
 		/**
+		 * @method .dif
+		 *
 		 * Removes all items from this collection, which are contained in otherArray and therefore 
 		 * creating the difference
+		 * 
+		 * @param [arrayjs.Collection] other
 		 */
 		this.dif$ = function(otherArray) {
 			var other = arrayjs(otherArray);
@@ -301,9 +395,13 @@ var arrayjs = function(elements) {
 		this.dif = applyToCopy(this, this.dif$);
 		
 		/**
-		 * Returns the cut (intersection) of this array with otherArray. 
-		 * To be a little more efficient it does NOT prevent duplicates. This results in O(n²) instead
-		 * of O(n³)
+		 * @method .cut
+		 *
+		 * Returns the cut (intersection) of this array with `other`. 
+		 * To be a little more efficient it does NOT prevent duplicates. This results 
+		 * in O(n²) instead of O(n³)
+		 *
+		 * @param [arrayjs.Collection] other
 		 */		 
 		this.cut$ = function(otherArray) {			
 			var other = arrayjs(otherArray);
@@ -316,8 +414,10 @@ var arrayjs = function(elements) {
 		this.cut = applyToCopy(this, this.cut$);	
 	
 		/**
-		 * ATTENTION: This method really clears THIS-collection. It should be named clear$, but that
-		 * maybe a little confusing?! What do you think?
+		 * @method .clear
+		 *
+		 * @warn This method really clears THIS-collection. It should be named 
+		 *   clear$, but that maybe a little confusing?! What do you think?
 		 */
 		this.clear = function() {
 		// have to check this in IE!!!
@@ -330,15 +430,21 @@ var arrayjs = function(elements) {
    //------------------------------- NOT CHAINING METHODS -----------------------------------------	
 	
 	 /**
+	  * @method .contains
+	  *
 		*	Finds first occurance of element and returns true if found and false if not found
+		* @param [Object] element
 		*/
 		this.contains = function(element) {			
 			return this.indexOf(element) == -1? false: true;	
 		}	
 		
 		/**
+		 * @method .index
+		 *
 		 * Get's the index of the searched element. Facade for indexOf, but returns null, if the
 		 * element is not found.
+		 * @param [Object] element
 		 */
 		this.index = function(element) {
 			var index = this.indexOf(element);
@@ -346,7 +452,10 @@ var arrayjs = function(elements) {
 		}
 		
 	  /**
+	   * @method .count
+	   *
 		 * Counts the occurances of element in Array
+		 * @param [Object] element
 		 */
 		this.count = function(element) {
 			return this.filter(function(i,el) {
@@ -355,16 +464,22 @@ var arrayjs = function(elements) {
 		}
 		
 		/**
+		 * @method .toArray
+		 *
 		 * Probably fastest way to convert to real Array.
 		 * Should multidimentsional arrays be converted to multidimensional
 		 * collections in the first place and then reconverted to multidimensional
 		 * native arrays with this methods???
+		 * 
+		 * @return [Array] the equivalent 'real' Array
 		 */
 		this.toArray = function() {					
 			return Array.prototype.slice.call(this);
 		}	 
 		
 		/**
+		 * @method .item
+		 *
 		 * Facade for bracket-access
 		 */
 		this.item = function(index) {
@@ -372,24 +487,39 @@ var arrayjs = function(elements) {
 		}
 		
 		/**
-		 * Returns first element of this collection
+		 * @method .first
+		 *
+		 * @return [Object] first element of this collection
 		 */
 		this.first = function() {
 			return this[0];
 		}
 		
 		/**
-		 * Returns last element of this collection
+		 * @method .last
+		 *
+		 * @return [Object] last element of this collection
 		 */		
 		this.last = function() {
 			return this[this.length-1];
 		}
 		
 		/**
-		 * Returns values, which are specified at indices. Mutliple arguments are allowed. The values are returned in a new collection.
+		 * @method .valuesAt
 		 *
-		 * for example: _(1,5,7,8,9).valuesAt(0,2,3);
-		 * -> [1,7,8]
+		 * Returns values, which are specified at indices. Mutliple arguments are 
+		 * allowed. The values are returned in a new collection.
+		 *
+		 * @param [Number] index1
+		 * @param [Number] index2
+		 * @param [...] ...
+		 *
+		 * @example 
+		 *   _(1,5,7,8,9).valuesAt(0,2,3);
+		 *   > [1,7,8]
+		 * 
+		 * @return [arrayjs.Collection] A new collection, containing the selected
+		 *   values.
 		 */
 		this.valuesAt = function() {		
 			var elements = new Collection();						
@@ -400,25 +530,36 @@ var arrayjs = function(elements) {
 		}	
 		
 		/**
-		 * Returns true or false, if this collection is empty
+		 * @method .isEmpty
+		 *
+		 * @return [Boolean] true, if this collection is empty
 		 */
 		this.isEmpty = function() { return this.length == 0; }
 		
 		/**
-		 * Returns the size of this collection. Facade for this.length
+		 * @method .size
+		 *
+		 * @return [Number] the size of this collection. Facade for this.length
+		 * 
 		 */
 		this.size = function() { return this.length; }		
 		
 		/**
+		 * @method .copy
+		 *
 		 * Can be used to get copy of this collection and work modifying on that,
 		 * whithout influencing original collection.
+		 *
+		 * @return [arrayjs.Collection] Shallow Copy of the underlying array
 		 */
 		 this.copy = function() {
 			return arrayjs(this);
 		 }
 		
 		/**
-		 * @returns "_[element0, element1, element 2 etc.]"
+		 * @method .toString
+		 *
+		 * @return [String] "_[element0, element1, element 2 etc.]"
 		 */
 		this.toString = function() {
 			return '_['+ this.join(', ') +']';
@@ -432,7 +573,7 @@ var arrayjs = function(elements) {
 		*	  properties."
 		*/	
 		this.length = 0;
-		Array.prototype.push.apply( this, elements );
+		Array.prototype.push.apply(this, elements);
 		
 		return this;
 	}
@@ -440,15 +581,15 @@ var arrayjs = function(elements) {
 	Collection.prototype = Array.prototype;	
 	
 	// no arguments given
-	if( elements == undefined )
+	if(elements == undefined)
 		elements = [];		
 		
 	// It's a string
-	if( elements.charAt != undefined )
+	if(elements.charAt != undefined)
 	  elements = elements.split(' ');
 	
-	// it's already a Collectionobject
-	if( elements && elements.isCollection )
+	// it's already a Collection-Object
+	if(elements && elements.isCollection)
 		return elements;
 	
 	// There are multiple arguments, so tread them as array

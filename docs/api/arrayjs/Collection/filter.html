@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Documentation</title>
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link href='http://fonts.googleapis.com/css?family=Terminal+Dosis+Light' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="../../../css/application.css"></link>
+  </head>
+  <body>
+    <header id="header" class="s">
+      <div class="wrapper">
+        <nav>
+          <h1>arrayjs</h1>
+          
+          <ul id="page-menu">
+            <li><a href="../../../docs/README.html">Documentation</a>
+            <li><a href="../../../api_index.html">Api-Docs</a>
+          </ul>
+          
+          <form>
+            <input type="search" id="search" placeholder="search API-docs" autocomplete="off" autofocus/>
+          </form>
+        </nav>
+        
+        <section class="browsers col50">          
+          <section class="docs">
+            <h1>Documents</h1>
+            <ul>
+             
+               <li><a href="../../../docs/README.html">README</a></li>
+             
+            </ul>
+          </section>        
+          <section class="api-browser">
+            <h1>API-Browser</h1>
+            <ul><li class="function"><a href="../../arrayjs.html"><span >arrayjs</span></a><ul><li class="object"><a href="../Collection.html"><span >Collection</span></a><ul><li class="function"><a href="each.html"><span >each</span></a><li class="function"><a href="collect.html"><span >collect</span></a><li class="function"><a href="map.html"><span >map</span></a><li class="function"><a href="filter.html"><span >filter</span></a><li class="function"><a href="reject.html"><span >reject</span></a><li class="function"><a href="replace.html"><span >replace</span></a><li class="function"><a href="compact.html"><span >compact</span></a><li class="function"><a href="remove.html"><span >remove</span></a><li class="function"><a href="deleteAt.html"><span >deleteAt</span></a><li class="function"><a href="removeAt.html"><span >removeAt</span></a><li class="function"><a href="uniq.html"><span >uniq</span></a><li class="function"><a href="fastUniq.html"><span >fastUniq</span></a><li class="function"><a href="insert.html"><span >insert</span></a><li class="function"><a href="concat.html"><span >concat</span></a><li class="function"><a href="reverse.html"><span >reverse</span></a><li class="function"><a href="dif.html"><span >dif</span></a><li class="function"><a href="cut.html"><span >cut</span></a><li class="function"><a href="clear.html"><span >clear</span></a><li class="function"><a href="contains.html"><span >contains</span></a><li class="function"><a href="index.html"><span >index</span></a><li class="function"><a href="count.html"><span >count</span></a><li class="function"><a href="toArray.html"><span >toArray</span></a><li class="function"><a href="item.html"><span >item</span></a><li class="function"><a href="first.html"><span >first</span></a><li class="function"><a href="last.html"><span >last</span></a><li class="function"><a href="valuesAt.html"><span >valuesAt</span></a><li class="function"><a href="isEmpty.html"><span >isEmpty</span></a><li class="function"><a href="size.html"><span >size</span></a><li class="function"><a href="copy.html"><span >copy</span></a><li class="function"><a href="toString.html"><span >toString</span></a></ul></ul></ul>
+          </section>  
+        </section>
+        
+        <section class="search-results col50">
+          <section class="functions">
+            <h1 class="icon function">Functions</h1>
+          </section>        
+          <section class="objects">
+            <h1 class="icon object">Objects</h1>
+          </section>
+        </section> 
+        
+        <a href="#" class="collapse">Collapse</a>      
+        <a href="#" class="expand" style="display: none;">Expand</a>         
+      </div>
+    </header>
+    <div role="main" id="main">
+      <article class="function"> 
+  
+  <header>
+    <nav class="sidebar">
+      <p>arrayjs.js:172</p>
+
+      <div class="hierarchy">
+        <h3>Hierarchy</h3>
+        <ul><li><a href="../../arrayjs.html">arrayjs</a><ul><li><a href="../Collection.html">Collection</a><ul><li class="this"><a href="filter.html">filter</a><ul class="children"></ul></ul></ul></ul>
+      </div>
+      
+      
+      
+      
+      
+      
+    </nav>
+  
+    <h1>arrayjs.Collection.filter</h1>
+    <section class="notification">
+      
+<section class="note subsection">
+  <h3 >Note</h3>
+  <ul>
+    <li>
+  
+
+  
+    
+    
+    <p>FIXED: splice reduced the length, but each won't take notice of it.</p>
+
+  
+  
+</li>  
+  </ul>
+</section>
+
+    </section> 
+  </header>
+    
+  <div class="body">
+    
+    <p>Own implementation of [].filter(), because of consistency in use</p>
+
+    
+    <!--span class="flag">constructor</span-->
+   
+    <h3>Example Usage</h3>
+<code class="example brush:js first-line:1">$([1,5,6,7]).filter(function(i,el) {
+  return this &gt; 5;
+});</code>
+    
+    
+    
+    
+      <h2 class="signature">(Void) <span class='name'>filter</span>(<span class='params'></span>)</h2>
+      
+      
+
+    
+    
+    <h3 class="source">Source</h3>
+    <code class="source brush:js first-line:172"></code>
+  
+  </div>
+ 
+</article> 
+    </div>
+    <footer id="footer">
+      <div class="wrapper">
+        Documentation created automagically with <a href="http://www.github.com/b-studios/doc.js">Doc.js for ruby</a>.
+      </div>
+    </footer>
+    <script src="../../../js/jcore.js"></script>    
+    <script>
+      var J = J || {};
+      J.root = "../../../";
+      window.jQuery || document.write("<script src='"+J.root+"js/jquery.js'>\x3C/script>")
+    </script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js"></script>
+    <script src="../../../js/jquery.treeview.js"></script><script src="../../../js/jquery.cookie.js"></script><script src="../../../js/jquery.tooltip.js"></script><script src="../../../js/regexpx.js"></script><script src="../../../js/shCore.js"></script><script src="../../../js/shBrushJScript.js"></script><script src="../../../js/application.js"></script><script src="../../../js/apisearch-data.js"></script>
+  <body>
+</html>
